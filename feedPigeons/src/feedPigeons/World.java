@@ -1,5 +1,7 @@
 package feedPigeons;
 
-public class World {
 
+public class World {
+	private Pigeon[] pigeons;
+	private Food[] foodArray;
 }
