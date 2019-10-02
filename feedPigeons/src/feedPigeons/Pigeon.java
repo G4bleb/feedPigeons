@@ -1,9 +1,8 @@
 package feedPigeons;
 
 //Chaque pigeon est contrôlé par un Thread
-public class Pigeon implements Runnable{
+public class Pigeon extends GraphicEntity implements Runnable{
 	
-	private int xPos, yPos;
 	private boolean asleep;
 	private boolean scared;
 	private Food [] foodHere;
