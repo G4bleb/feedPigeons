@@ -1,7 +1,8 @@
 package feedPigeons;
 
+import java.util.ArrayList;
 
 public class World {
 	private Pigeon[] pigeons;
-	private Food[] foodArray;
+	private ArrayList<Food> foodArray;
 }
