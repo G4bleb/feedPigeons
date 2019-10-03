@@ -10,10 +10,10 @@ public class Pigeon extends GraphicEntity implements Runnable{
 	private boolean alive = true;
 	private boolean scared = false;
 	private double fearThreshold;
+	private ArrayList<Food> foodHere;
 	private GraphicEntity objective = null;
 	private Food foodObjective = null;
 	private int foodObjectiveID = 0;
-	private ArrayList<Food> foodHere;
 	
 	
 	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch) {
@@ -28,6 +28,12 @@ public class Pigeon extends GraphicEntity implements Runnable{
 		this.foodHere = foodToWatch;
 	}
 	
+	private class SafeSpace extends GraphicEntity{
+		public SafeSpace(int x, int y, int width, int height) {
+			super(x, y, width, height);
+		}
+	}
+	
 	/**
 	 * Identifie l'envie de la nourriture passée en paramètre
 	 * @param food
@@ -35,7 +41,12 @@ public class Pigeon extends GraphicEntity implements Runnable{
 	private void considerNewFood() {
 		int newFoodID = foodHere.size()-1;
 		Food newFood = foodHere.get(newFoodID);
-		//TODO Vérifier si la nourriture devient le nouvel objectif
+		if(foodObjective != null) {
+			if (this.distanceTo(newFood)>this.distanceTo(foodObjective)) {
+				//Si la nouvelle nourriture est plus éloignée
+				return;
+			}
+		}
 		foodObjective = newFood;
 		foodObjectiveID = newFoodID;
 	}
@@ -61,9 +72,13 @@ public class Pigeon extends GraphicEntity implements Runnable{
 		}
 		//TODO Avance vers l'objectif
 		if(collidesWith(objective)) {
-			//Si l'objectif est de la nourriture, la manger 
-			//foodHere.remove(foodObjective);
-			objective = null;
+			if (objective instanceof Food) {//TODO Vérifier que cette condition fonctionne
+				foodHere.remove(foodObjectiveID);
+				objective = null;
+			}else {
+				//C'est un SafeSpace
+				objective = foodObjective;
+			}
 		}
 	}
 
