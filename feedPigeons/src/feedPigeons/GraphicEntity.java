@@ -2,6 +2,15 @@ package feedPigeons;
 
 
 abstract class GraphicEntity {
+	
+	public class Point{
+		public int x, y;
+		Point(int x, int y){
+			this.x = x;
+			this.y = y;
+		}
+	}
+	
 	protected int width, height;
 	protected int x, y;
 
@@ -33,8 +42,8 @@ abstract class GraphicEntity {
 	 * 
 	 * @return un tableau de deux entiers contenant les coordonées de l'épicentre
 	 */
-	public int[] epicenter() {
-		return new int[] { x + width / 2, y + height / 2 };
+	public Point epicenter() {
+		return new Point(x + width / 2, y + height / 2);
 	}
 
 	/**
@@ -55,8 +64,8 @@ abstract class GraphicEntity {
 	}
 	
 	protected double distanceTo(GraphicEntity entity) {
-		double term1 = Math.pow(entity.epicenter()[0]-this.epicenter()[0], 2);
-		double term2 = Math.pow(entity.epicenter()[1]-this.epicenter()[1], 2);
+		double term1 = Math.pow(entity.epicenter().x-this.epicenter().x, 2);
+		double term2 = Math.pow(entity.epicenter().y-this.epicenter().y, 2);
 		return Math.sqrt(term1+term2);
 	}
 
