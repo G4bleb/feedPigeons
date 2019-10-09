@@ -1,10 +1,16 @@
 package feedPigeons;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.util.ArrayList;
+
+import javax.swing.ImageIcon;
 
 //Chaque pigeon est contrôlé par un Thread
 public class Pigeon extends GraphicEntity implements Runnable {
-
+	
+	private static final Image img = new ImageIcon("res/pigeon.png").getImage();
 	private boolean asleep = true;
 	private boolean alive = true;
 	private boolean scared = false;
@@ -13,6 +19,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	private GraphicEntity objective = null;
 	private Food foodObjective = null;
 	private int foodObjectiveID = 0;
+	private boolean checkFood = false;
 
 	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch) {
 		super(x, y, width, height);
@@ -30,6 +37,10 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		public SafeSpace(int x, int y, int width, int height) {
 			super(x, y, width, height);
 		}
+		@Override
+		public void render(Graphics g) {
+			//Invisible
+		}
 	}
 
 	/**
@@ -37,17 +48,28 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	 * 
 	 * @param food
 	 */
-	private void considerNewFood() {
-		int newFoodID = foodHere.size() - 1;
-		Food newFood = foodHere.get(newFoodID);
-		if (foodObjective != null) {
-			if (this.distanceTo(newFood) > this.distanceTo(foodObjective)) {
-				// Si la nouvelle nourriture est plus éloignée
-				return;
+	private void findBestFood() {
+		switch (foodHere.size()) {
+		case 0:
+			foodObjective = null;
+			return;
+		case 1:
+			foodObjective = foodHere.get(0);
+			foodObjectiveID = 0;
+			return;
+		default:
+			foodObjective = foodHere.get(0);
+			foodObjectiveID = 0;
+			for (int foodID = 1; foodID < foodHere.size(); foodID++) {
+				if (this.distanceTo(foodHere.get(foodID)) < this.distanceTo(foodObjective)) {
+					foodObjective = foodHere.get(foodID);
+					foodObjectiveID = foodID;
+				}
 			}
+			break;
 		}
-		foodObjective = newFood;
-		foodObjectiveID = newFoodID;
+		
+		log("Now I like food "+foodObjectiveID);
 	}
 
 	/**
@@ -60,6 +82,9 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			scared = true;
 		}
 		// TODO trouve un objectif aléatoire (new ?)
+		if(!scared) {
+			objective = foodObjective;
+		}
 	}
 
 	/**
@@ -67,25 +92,18 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	 * 
 	 * @return S'il est arrivé ou pas
 	 */
-	private void stepToObjective() {
+	private synchronized void stepToObjective() {
+		
 		if (objective == null) {
+			if (objective instanceof Food) {
+				foodObjective = null;
+				checkFood = true;
+				log("oh no, the food "+foodObjectiveID+" i was aiming got eaten");
+			}
 			return;
 		}
-		// TODO Avance vers l'objectif
-		// https://stackoverflow.com/questions/28444491/how-do-i-move-one-point-towards-another-point-in-c/28444694
 
-		// https://gamedev.stackexchange.com/questions/23447/moving-from-ax-y-to-bx1-y1-with-constant-speed
-		/*
-		 * int speed_per_tick = 1; // constant speed you want the object to move at int
-		 * delta_x = objective.x - this.x; int delta_y = objective.y - this.y; double
-		 * goal_dist = Math.sqrt((delta_x * delta_x) + (delta_y * delta_y)); if
-		 * (this.distanceTo(objective) > speed_per_tick) { double ratio = speed_per_tick
-		 * / goal_dist; int x_move = (int) (ratio * delta_x); int y_move = (int) (ratio
-		 * * delta_y); this.x = x_move + this.x; this.y = y_move + this.y; } else {
-		 * this.x = objective.x; this.y = objective.y; }
-		 */
-
-		int speed_per_tick = 1; // constant speed you want the object to move at
+		int speed_per_tick = 2; // constant speed you want the object to move at
 		int delta_x = objective.x - this.x;
 		int delta_y = objective.y - this.y;
 		double goal_dist = Math.sqrt((delta_x * delta_x) + (delta_y * delta_y));
@@ -95,9 +113,12 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		this.x = x_move + this.x;
 		this.y = y_move + this.y;
 
+		
 		if (collidesWith(objective)) {
-			if (objective instanceof Food) {// TODO Vérifier que cette condition fonctionne
-				foodHere.remove(foodObjectiveID);
+			if (objective instanceof Food) {
+				log("Let's try to eat food "+foodObjectiveID);
+				eat(foodObjectiveID);
+				foodObjective = null;
 				objective = null;
 			} else {
 				// C'est un SafeSpace
@@ -105,20 +126,58 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			}
 		}
 	}
-
+	
+	private synchronized boolean eat(int foodID) {
+		if(foodHere.size()<= foodID) {
+			foodObjective = null;
+			checkFood = true;
+			log("My food disappeared :( food "+foodObjectiveID);
+			return false;
+		}
+		if(foodHere.get(foodID) != null) {
+			foodHere.remove(foodID);
+			foodObjective = null;
+			checkFood = true;
+			log("Yum ! Ate food "+foodObjectiveID);
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
 	public void run() {
 		int lastKnownFoodArraySize = 0;
-		while (alive) {
+		long frameStartTime;
+		
 
-			if (lastKnownFoodArraySize != foodHere.size()) {// Si de la nourriture vient d'arriver ou de disparaître
-				considerNewFood();
+		while(alive) {
+			
+			frameStartTime = System.nanoTime();
+			if (lastKnownFoodArraySize != foodHere.size() || checkFood) {// Si de la nourriture vient d'arriver ou de disparaître
+				
+				findBestFood();
 				lastKnownFoodArraySize = foodHere.size();
+				checkFood = false;
 			}
-			// Peut prendre peur aléatoirement
 			getMaybeScared(Math.random());
-
 			stepToObjective();
+			
+			//long timeElapsed = System.nanoTime()-t1;
+			while(System.nanoTime()-frameStartTime <= 16666666l);
+			
+			
 		}
 
+	}
+	
+	@Override
+	public void render(Graphics g) {
+		g.drawImage(img, x, y, null);
+		//g.setColor(Color.RED);
+		//g.fillRect(x, y, width, height);
+	}
+	
+	private void log(String msg) {
+		System.out.println("Pigeon "+Thread.currentThread().getId()+" : "+msg);
 	}
 }

@@ -1,15 +1,8 @@
 package feedPigeons;
 
+import java.awt.Graphics;
 
 abstract class GraphicEntity {
-	
-	public class Point{
-		public int x, y;
-		Point(int x, int y){
-			this.x = x;
-			this.y = y;
-		}
-	}
 	
 	protected int width, height;
 	protected int x, y;
@@ -19,6 +12,14 @@ abstract class GraphicEntity {
 		this.y = y;
 		this.width = width;
 		this.height = height;
+	}
+	
+	public class Point{
+		public int x, y;
+		Point(int x, int y){
+			this.x = x;
+			this.y = y;
+		}
 	}
 
 	public int getWidth() {
@@ -68,5 +69,8 @@ abstract class GraphicEntity {
 		double term2 = Math.pow(entity.epicenter().y-this.epicenter().y, 2);
 		return Math.sqrt(term1+term2);
 	}
+	
+	//public abstract void tick();
+	public abstract void render(Graphics g);
 
 }

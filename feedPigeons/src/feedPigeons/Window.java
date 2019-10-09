@@ -20,7 +20,7 @@ public class Window extends Canvas {
 		frame.setMaximumSize(new Dimension(width, height));
 		frame.setMinimumSize(new Dimension(width, height));
 		try {
-			frame.setIconImage(ImageIO.read(new File("res/pidgey.png")));
+			frame.setIconImage(ImageIO.read(new File("res/pigeon.png")));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

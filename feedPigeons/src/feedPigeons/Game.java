@@ -13,12 +13,15 @@ public class Game extends Canvas implements Runnable {
 	private Thread thread;
 	private boolean running = false;
 	
+	//Partie jeu
+	private World world;
 	
 	public Game() {
 		new Window(WIDTH, HEIGHT, "Pigeon Game", this);
 	}
 
 	public synchronized void start() {
+		world = new World();
 		thread = new Thread(this);
 		thread.start();
 		running = true;	
@@ -35,25 +38,21 @@ public class Game extends Canvas implements Runnable {
 	
 	@Override
 	public void run() {
-		long lastTime = System.nanoTime();
-		double amountOfTicks = 60.0;
-		double ns = 1000000000 / amountOfTicks;
-		double delta = 0;
+
 		long timer = System.currentTimeMillis();
 		int frames = 0;
-		
+		long frameStartTime;
 		while(running) {
-			long now = System.nanoTime();
-			delta += (now - lastTime) / ns;
-			lastTime = now;
+			frameStartTime = System.nanoTime();
 			
-			while(delta >=1) {
-				tick();
-				delta--;
-			}
 			
-			if(running)
+			tick();
+			if(running) {
 				render();
+			}
+			//long timeElapsed = System.nanoTime()-t1;
+			
+			while(System.nanoTime()-frameStartTime <= 16666666l);
 			frames++;
 			
 			if(System.currentTimeMillis() - timer > 1000) {
@@ -81,8 +80,10 @@ public class Game extends Canvas implements Runnable {
 		
 		Graphics g = bs.getDrawGraphics();
 		
-		g.setColor(Color.red);
+		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
+		
+		world.renderWorld(g);
 		
 		g.dispose();
 		bs.show();
