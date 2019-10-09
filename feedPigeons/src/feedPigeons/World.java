@@ -38,8 +38,8 @@ public class World {//TODO
 		//for (int i = 0; i < 2; i++) {
 			//addPigeon((int) ((Math.random()+1)*200), (int) ((Math.random()+1)*200), 10, 10);
 		//}
-		addPigeon(600, 400, 64, 64);
-		addPigeon(100, 100, 64, 64);
+		addPigeon(600, 400, 21, 21);
+		addPigeon(100, 100, 21, 21);
 		
 		
 		new java.util.Timer().schedule( 
