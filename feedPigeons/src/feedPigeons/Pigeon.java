@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 import javax.swing.ImageIcon;
 
@@ -11,26 +12,33 @@ import javax.swing.ImageIcon;
 public class Pigeon extends GraphicEntity implements Runnable {
 	
 	private static final Image img = new ImageIcon("res/pigeon.png").getImage();
+	
 	private boolean asleep = true;
 	private boolean alive = true;
 	private boolean scared = false;
+	
 	private double fearThreshold;
+	
 	private ArrayList<Food> foodHere;
+	private Semaphore foodLock;
+	
 	private GraphicEntity objective = null;
 	private Food foodObjective = null;
 	private int foodObjectiveID = 0;
 	private boolean checkFood = false;
 
-	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch) {
+	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch, Semaphore foodLock) {
 		super(x, y, width, height);
 		this.fearThreshold = 1d;// Pour le moment, ne peut pas prendre peur
 		this.foodHere = foodToWatch;
+		this.foodLock = foodLock;
 	}
 
-	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch, double fearThreshold) {
+	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch, Semaphore foodLock, double fearThreshold) {
 		super(x, y, width, height);
 		this.fearThreshold = fearThreshold;
 		this.foodHere = foodToWatch;
+		this.foodLock = foodLock;
 	}
 
 	private class SafeSpace extends GraphicEntity {
@@ -69,7 +77,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			break;
 		}
 		
-		log("Now I like food "+foodObjectiveID);
+		//log("Now I like food "+foodObjectiveID);
 	}
 
 	/**
@@ -92,7 +100,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	 * 
 	 * @return S'il est arrivé ou pas
 	 */
-	private synchronized void stepToObjective() {
+	private void stepToObjective() {
 		
 		if (objective == null) {
 			if (objective instanceof Food) {
@@ -128,20 +136,31 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	}
 	
 	private synchronized boolean eat(int foodID) {
-		if(foodHere.size()<= foodID) {
+		try {
+			foodLock.acquire();
+		
+		/*if(foodHere.size()<= foodID) {
 			foodObjective = null;
 			checkFood = true;
 			log("My food disappeared :( food "+foodObjectiveID);
 			return false;
-		}
+		}*/
+		
 		if(foodHere.get(foodID) != null) {
 			foodHere.remove(foodID);
 			foodObjective = null;
 			checkFood = true;
 			log("Yum ! Ate food "+foodObjectiveID);
+			foodLock.release();
 			return true;
 		}
+		foodLock.release();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return false;
+		
 	}
 	
 	@Override
@@ -162,9 +181,8 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			getMaybeScared(Math.random());
 			stepToObjective();
 			
-			//long timeElapsed = System.nanoTime()-t1;
 			while(System.nanoTime()-frameStartTime <= 16666666l);
-			
+			//while(System.nanoTime()-frameStartTime <= 66666664l);
 			
 		}
 
