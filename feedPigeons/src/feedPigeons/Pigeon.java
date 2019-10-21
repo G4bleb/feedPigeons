@@ -10,25 +10,30 @@ import javax.swing.ImageIcon;
 
 //Chaque pigeon est contrôlé par un Thread
 public class Pigeon extends GraphicEntity implements Runnable {
+	// Constantes
 	private static final Image IMG = new ImageIcon("res/pigeon.png").getImage();
-	private static final int WIDTH = 21, HEIGHT = 21;
 	private static final Image IMGSCARED = new ImageIcon("res/scaredpigeon.png").getImage();
-	private static final int SAFERANGE = 50;
-	private static final float DEFAULTFEARTHRESHOLD = 0.995f;
+	private static final int WIDTH = 21, HEIGHT = 21;
+
+	private static final int SAFERANGE = 70;// Distance maximale de la zone de fuite
+	private static final float DEFAULTFEARTHRESHOLD = 0.995f;// Seuil de peur par défaut
 	private static final Random RAND = new Random();
 
+	//Variables
 	private boolean alive = true;
 	private boolean scared = false;
+	private float fearThreshold;// Seuil de peur
+	
+	private int foodObjectiveID = 0;// Indice de la nourriture ciblée dans foodHere
+	private boolean checkFood = false;// Pour actualisation de la nourriture ciblée quand c'est nécessaire
 
-	private float fearThreshold;
-
-	private ArrayList<Food> foodHere;
-	private Semaphore foodLock;
-
-	private GraphicEntity objective = null;
-	private Food foodObjective = null;
-	private int foodObjectiveID = 0;
-	private boolean checkFood = false;
+	//Références
+	private ArrayList<Food> foodHere;// Tableau des nourritures présentes
+	private Semaphore foodLock;// Sémaphore pour opérations sur le tableau de nourriture
+	private GraphicEntity objective = null;// Objectif actuel
+	private Food foodObjective = null;// Nourriture ciblée
+	
+	
 
 	public Pigeon(int x, int y, ArrayList<Food> foodToWatch, Semaphore foodLock) {
 		super(x, y, WIDTH, HEIGHT);
@@ -37,14 +42,17 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		this.foodLock = foodLock;
 	}
 
-	public Pigeon(int x, int y, ArrayList<Food> foodToWatch, Semaphore foodLock,
-			float fearThreshold) {
+	public Pigeon(int x, int y, ArrayList<Food> foodToWatch, Semaphore foodLock, float fearThreshold) {
 		super(x, y, WIDTH, HEIGHT);
 		this.fearThreshold = fearThreshold;
 		this.foodHere = foodToWatch;
 		this.foodLock = foodLock;
 	}
 
+	/**
+	 * Zone de fuite que créera le pigeon lorsqu'il prendra peur
+	 *
+	 */
 	private class SafeSpace extends GraphicEntity {
 		public SafeSpace(int x, int y) {
 			super(x, y, 1, 1);
@@ -57,9 +65,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	}
 
 	/**
-	 * Identifie l'envie de la nourriture passée en paramètre
-	 * 
-	 * @param food
+	 * Cible la nourriture la plus intéressante
 	 */
 	private void findBestFood() {
 		switch (foodHere.size()) {
@@ -82,7 +88,6 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			break;
 		}
 
-		// log("Now I like food "+foodObjectiveID);
 	}
 
 	/**
@@ -90,17 +95,13 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	 * 
 	 * @param fear la peur subie
 	 */
-	private void getMaybeScared(double fear) {
+	private void getMaybeScared(float fear) {
 		if (fear > fearThreshold) {
-			System.out.println("Am scared");
+			log("J'ai pris peur");
 			scared = true;
 			objective = new SafeSpace(this.x + RAND.nextInt(SAFERANGE + SAFERANGE) - SAFERANGE,
 					this.y + RAND.nextInt(SAFERANGE + SAFERANGE) - SAFERANGE);
-			//Le point de fuite se situe dans un carré de côté SAFERANGE autour du pigeon
-		}
-
-		if (!scared) {
-			objective = foodObjective;
+			// Le point de fuite se situe dans un carré de côté SAFERANGE autour du pigeon
 		}
 	}
 
@@ -112,11 +113,8 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	private void stepToObjective() {
 
 		if (objective == null) {
-			if (objective instanceof Food) {
-				foodObjective = null;
-				checkFood = true;
-				log("oh no, the food " + foodObjectiveID + " i was aiming got eaten");
-			}
+			//La nourriture ciblée a disparue
+			checkFood = true;
 			return;
 		}
 
@@ -131,8 +129,10 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		this.y = y_move + this.y;
 
 		if (collidesWith(objective)) {
+			//Arrivée à l'objectif
 			if (objective instanceof Food) {
-				log("Let's try to eat food " + foodObjectiveID);
+				//C'est de la nourriture
+				log("Trying to eat food " + foodObjectiveID);
 				eat(foodObjectiveID);
 				foodObjective = null;
 				objective = null;
@@ -144,59 +144,84 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		}
 	}
 
+	/**
+	 * Mange la nourriture dont l'index est passé en paramètre
+	 * @param foodID l'index de la nourriture dans foodHere
+	 * @return true si la nourriture a été mangée avec succès
+	 */
 	private synchronized boolean eat(int foodID) {
 		try {
 			foodLock.acquire();
-
-			if (foodHere.size() > 0) {
+			
+			if (foodID < foodHere.size()) {
 				foodHere.remove(foodID);
 				foodObjective = null;
 				checkFood = true;
-				log("Yum ! Ate food " + foodObjectiveID);
+				log("Ate food " + foodObjectiveID);
 				foodLock.release();
 				return true;
 			}
+			
 			foodLock.release();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 		return false;
 
 	}
 
+	/**
+	 * Boucle principale du Pigeon
+	 * Chaque 60eme de seconde, peut :
+	 *  - Considérer la meilleure nourriture
+	 *  - Prendre peur
+	 *  - Marcher vers son objectif
+	 */
 	@Override
 	public void run() {
 		int lastKnownFoodArraySize = 0;
 		long frameStartTime;
 
 		while (alive) {
-
 			frameStartTime = System.nanoTime();
-			if (lastKnownFoodArraySize != foodHere.size() || checkFood) {// Si de la nourriture vient d'arriver ou de
-																			// disparaître
-
+			
+			if (lastKnownFoodArraySize != foodHere.size() || checkFood) {
+				// Si de la nourriture vient d'arriver ou de disparaître
 				findBestFood();
 				lastKnownFoodArraySize = foodHere.size();
 				checkFood = false;
 			}
+			
 			getMaybeScared(RAND.nextFloat());
+			
+			if(!scared) {
+				objective = foodObjective;
+			}
+			
 			stepToObjective();
 
+			//Attendre la fin d'un 60eme de seconde
 			while (System.nanoTime() - frameStartTime <= 16666666l);
 
 		}
 
 	}
 
+	/**
+	 * Affiche le pigeon
+	 */
 	@Override
 	public void render(Graphics g) {
-		if(scared) {
+		if (scared) {
 			g.drawImage(IMGSCARED, x, y, null);
-		}else{
+		} else {
 			g.drawImage(IMG, x, y, null);
 		}
 	}
 
+	/**
+	 * Log un message dans la console, en ajoutant l'id du pigeon
+	 * @param msg le message à log
+	 */
 	private void log(String msg) {
 		System.out.println("Pigeon " + Thread.currentThread().getId() + " : " + msg);
 	}

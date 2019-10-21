@@ -3,7 +3,6 @@ package feedPigeons;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -11,12 +10,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class World {
-
-	private ArrayList<Food> foodArray = new ArrayList<Food>();
-	private Semaphore foodLock = new Semaphore(1);
 	
-	// https://stackoverflow.com/questions/35571395/how-to-access-running-threads-inside-threadpoolexecutor
 	static class MonitorPigeon implements Runnable {
+		//Va servir à manager les threads pigeon
 
 		static final List<Pigeon> activePigeons = Collections.synchronizedList(new ArrayList<>());
 
@@ -34,12 +30,16 @@ public class World {
 		}
 	}
 
-
+	//Variables
+	private ArrayList<Food> foodArray = new ArrayList<Food>();
+	private Semaphore foodLock = new Semaphore(1);
 	private static ThreadPoolExecutor executor = new ThreadPoolExecutor(100, 100, 20, TimeUnit.SECONDS,
 			new ArrayBlockingQueue<>(300));
 
+	
 	public World(int width, int height, int initialPigeonsNumber) {
 		for (int i = 0; i < initialPigeonsNumber; i++) {
+			//Place les pigeons aléatoirement sur le monde
 			addPigeon((int) (Math.random() * width), (int) (Math.random() * height));
 		}
 	}
@@ -59,8 +59,10 @@ public class World {
 
 
     public void renderWorld(Graphics g) {
+    	//Bloc à exécuter avec les pigeons tous stoppés
         synchronized (MonitorPigeon.activePigeons) {
             for (Pigeon p : MonitorPigeon.activePigeons) {
+            	//Afficher chaque pigeon
             	p.render(g);
             }
         }
@@ -74,12 +76,8 @@ public class World {
 					foodArray.remove(i);
 				}
 			}
-			
 	        foodLock.release();
-		} catch (InterruptedException | ConcurrentModificationException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (InterruptedException e ) {}
 
 	}
 
