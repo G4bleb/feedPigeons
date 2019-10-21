@@ -155,9 +155,8 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			return true;
 		}
 		foodLock.release();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (InterruptedException | IndexOutOfBoundsException e) {
+			System.out.println("Eating that was not a good idea, it seems");
 		}
 		return false;
 		
