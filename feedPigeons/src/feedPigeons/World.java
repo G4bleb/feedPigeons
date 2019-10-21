@@ -6,11 +6,13 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class World {//TODO
 	
+	//https://stackoverflow.com/questions/35571395/how-to-access-running-threads-inside-threadpoolexecutor
 	static class MonitorPigeon implements Runnable {
 
 	    static final List<Pigeon> activePigeons = Collections.synchronizedList(new ArrayList<>());
@@ -29,9 +31,9 @@ public class World {//TODO
 	    }
 	}
 	
-	//private Pigeon[] pigeons;
 	private ArrayList<Food> foodArray = new ArrayList<Food>();
-
+	private Semaphore foodLock = new Semaphore(1);
+	
 	private static ThreadPoolExecutor executor = new ThreadPoolExecutor(100, 100, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<>(300));
 
 	public World() {
@@ -62,7 +64,11 @@ public class World {//TODO
 	}
 	
     public void addPigeon(int x, int y, int width, int height) {
-        executor.execute(new MonitorPigeon(new Pigeon(x, y, width, height, foodArray)));
+        executor.execute(new MonitorPigeon(new Pigeon(x, y, width, height, foodArray, foodLock)));
+    }
+    
+    public void addFood(int x, int y, int width, int height) {
+    	foodArray.add(new Food(x, y, width, height));
     }
 
     public void renderWorld(Graphics g) {
@@ -70,15 +76,17 @@ public class World {//TODO
             for (Pigeon p : MonitorPigeon.activePigeons) {
             	p.render(g);
             }
-            try {
-            	for(Food f : foodArray) {
-                	f.render(g);
-                }
-            }catch(ConcurrentModificationException e) {
-            	System.err.println("ERROR TIME : ConcurrentModificationException :(");
-            }
-            
         }
+        try {
+			foodLock.acquire();
+			for(Food f : foodArray) {
+	           	f.render(g);
+	        }
+	        foodLock.release();
+		} catch (InterruptedException | ConcurrentModificationException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
    }
     
