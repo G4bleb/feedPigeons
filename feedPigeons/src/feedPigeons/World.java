@@ -68,7 +68,14 @@ public class World {//TODO
     }
     
     public void addFood(int x, int y, int width, int height) {
+    	try {
+			foodLock.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	foodArray.add(new Food(x, y, width, height));
+    	foodLock.release();
     }
 
     public void renderWorld(Graphics g) {
