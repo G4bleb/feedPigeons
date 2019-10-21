@@ -26,12 +26,21 @@ public class Food extends GraphicEntity{
 	 */
 	@Override
 	public void render(Graphics g) {
-		freshness += 0.004;
 		g.drawImage(IMG, x, y, null);		
+	}
+	
+	/**
+	 * Vieillit la nourriture
+	 * @return true si la nourriture a pourri, false sinon
+	 */
+	public boolean age() {
+		freshness += 0.004;
 		
 		if(freshness >= 1) {
 			setRotten(true);
+			return true;
 		}
+		return false;
 	}
 
 	public boolean isRotten() {

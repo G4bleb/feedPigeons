@@ -71,7 +71,7 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	private void tick() {
-		
+		world.ageFood();
 	}
 	
 	private void render() {
