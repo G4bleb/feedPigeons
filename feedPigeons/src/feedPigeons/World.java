@@ -85,10 +85,16 @@ public class World {//TODO
             }
         }
         try {
+        	Food f;
 			foodLock.acquire();
-			for(Food f : foodArray) {
-	           	f.render(g);
-	        }
+			for(int i=0 ; i < foodArray.size() ; i++) {
+				f = foodArray.get(i);
+				f.render(g);
+				if(f.isRotten()) {
+					foodArray.remove(i);
+				}
+			}
+			
 	        foodLock.release();
 		} catch (InterruptedException | ConcurrentModificationException e ) {
 			// TODO Auto-generated catch block
