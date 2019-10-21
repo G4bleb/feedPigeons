@@ -146,7 +146,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			return false;
 		}*/
 		
-		if(foodHere.get(foodID) != null) {
+		if(foodHere.size() > 0) {
 			foodHere.remove(foodID);
 			foodObjective = null;
 			checkFood = true;
@@ -155,8 +155,8 @@ public class Pigeon extends GraphicEntity implements Runnable {
 			return true;
 		}
 		foodLock.release();
-		} catch (InterruptedException | IndexOutOfBoundsException e) {
-			System.out.println("Eating that was not a good idea, it seems");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		return false;
 		
