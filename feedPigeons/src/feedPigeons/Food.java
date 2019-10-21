@@ -6,12 +6,13 @@ import java.awt.Image;
 import javax.swing.ImageIcon;
 
 public class Food extends GraphicEntity{
-	private static final Image freshFood = new ImageIcon("res/food.png").getImage();
+	private static final Image IMG = new ImageIcon("res/food.png").getImage();
+	private static final int WIDTH = 10, HEIGHT = 10;
 	private float freshness = 0;//0 = fresh to 1 = rotten
 	private boolean isRotten = false;
 	
-	public Food(int x, int y, int width, int height) {
-		super(x, y, width, height);
+	public Food(int x, int y) {
+		super(x, y, WIDTH, HEIGHT);
 	}
 	
 	public float getFreshness() {
@@ -21,9 +22,9 @@ public class Food extends GraphicEntity{
 	@Override
 	public void render(Graphics g) {
 		freshness += 0.004;
+		g.drawImage(IMG, x, y, null);		
 		
-		if(freshness < 1) {
-			g.drawImage(freshFood, x, y, null);		
+		if(freshness >= 1) {
 			setRotten(true);
 		}
 	}

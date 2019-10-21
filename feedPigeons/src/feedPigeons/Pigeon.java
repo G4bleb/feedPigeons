@@ -10,13 +10,13 @@ import javax.swing.ImageIcon;
 
 //Chaque pigeon est contrôlé par un Thread
 public class Pigeon extends GraphicEntity implements Runnable {
-	private static final Image img = new ImageIcon("res/pigeon.png").getImage();
-	private static final Image imgScared = new ImageIcon("res/scaredpigeon.png").getImage();
-	private static final int safeSpaceRange = 50;
-	private static final float defaultFearThreshold = 0.995f;
-	private static final Random random = new Random();
+	private static final Image IMG = new ImageIcon("res/pigeon.png").getImage();
+	private static final int WIDTH = 21, HEIGHT = 21;
+	private static final Image IMGSCARED = new ImageIcon("res/scaredpigeon.png").getImage();
+	private static final int SAFERANGE = 50;
+	private static final float DEFAULTFEARTHRESHOLD = 0.995f;
+	private static final Random RAND = new Random();
 
-	private boolean asleep = true;
 	private boolean alive = true;
 	private boolean scared = false;
 
@@ -30,16 +30,16 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	private int foodObjectiveID = 0;
 	private boolean checkFood = false;
 
-	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch, Semaphore foodLock) {
-		super(x, y, width, height);
-		this.fearThreshold = defaultFearThreshold;
+	public Pigeon(int x, int y, ArrayList<Food> foodToWatch, Semaphore foodLock) {
+		super(x, y, WIDTH, HEIGHT);
+		this.fearThreshold = DEFAULTFEARTHRESHOLD;
 		this.foodHere = foodToWatch;
 		this.foodLock = foodLock;
 	}
 
-	public Pigeon(int x, int y, int width, int height, ArrayList<Food> foodToWatch, Semaphore foodLock,
+	public Pigeon(int x, int y, ArrayList<Food> foodToWatch, Semaphore foodLock,
 			float fearThreshold) {
-		super(x, y, width, height);
+		super(x, y, WIDTH, HEIGHT);
 		this.fearThreshold = fearThreshold;
 		this.foodHere = foodToWatch;
 		this.foodLock = foodLock;
@@ -94,9 +94,9 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		if (fear > fearThreshold) {
 			System.out.println("Am scared");
 			scared = true;
-			objective = new SafeSpace(this.x + random.nextInt(safeSpaceRange + safeSpaceRange) - safeSpaceRange,
-					this.y + random.nextInt(safeSpaceRange + safeSpaceRange) - safeSpaceRange);
-			//Le point de fuite se situe dans un carré de côté safeSpaceRange autour du pigeon
+			objective = new SafeSpace(this.x + RAND.nextInt(SAFERANGE + SAFERANGE) - SAFERANGE,
+					this.y + RAND.nextInt(SAFERANGE + SAFERANGE) - SAFERANGE);
+			//Le point de fuite se situe dans un carré de côté SAFERANGE autour du pigeon
 		}
 
 		if (!scared) {
@@ -179,7 +179,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 				lastKnownFoodArraySize = foodHere.size();
 				checkFood = false;
 			}
-			getMaybeScared(random.nextFloat());
+			getMaybeScared(RAND.nextFloat());
 			stepToObjective();
 
 			while (System.nanoTime() - frameStartTime <= 16666666l);
@@ -191,9 +191,9 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	@Override
 	public void render(Graphics g) {
 		if(scared) {
-			g.drawImage(imgScared, x, y, null);
+			g.drawImage(IMGSCARED, x, y, null);
 		}else{
-			g.drawImage(img, x, y, null);
+			g.drawImage(IMG, x, y, null);
 		}
 	}
 

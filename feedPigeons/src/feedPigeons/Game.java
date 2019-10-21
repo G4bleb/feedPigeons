@@ -16,6 +16,7 @@ public class Game extends Canvas implements Runnable {
 	
 	//Partie jeu
 	private World world;
+	private static final int PIGEONSNUMBER = 3;
 	
 	public Game() {
 		
@@ -25,7 +26,7 @@ public class Game extends Canvas implements Runnable {
 	}
 
 	public synchronized void start() {
-		setWorld(new World());
+		setWorld(new World(WIDTH, HEIGHT, PIGEONSNUMBER));
 		thread = new Thread(this);
 		thread.start();
 		running = true;		
