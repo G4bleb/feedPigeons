@@ -19,16 +19,16 @@ public class Game extends Canvas implements Runnable {
 	
 	public Game() {
 		
-		window = new Window(WIDTH, HEIGHT, "Pigeon Game", world, this);
+		window = new Window(WIDTH, HEIGHT, "Pigeon Game", this);
 		
 		this.addMouseListener(window);
 	}
 
 	public synchronized void start() {
-		world = new World();
+		setWorld(new World());
 		thread = new Thread(this);
 		thread.start();
-		running = true;	
+		running = true;		
 	}
 	
 	public synchronized void stop() {
@@ -86,7 +86,7 @@ public class Game extends Canvas implements Runnable {
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		
-		world.renderWorld(g);
+		getWorld().renderWorld(g);
 		
 		g.dispose();
 		bs.show();
@@ -94,5 +94,13 @@ public class Game extends Canvas implements Runnable {
 	
 	public static void main(String[] args) {
 		new Game();
+	}
+
+	public World getWorld() {
+		return world;
+	}
+
+	public void setWorld(World world) {
+		this.world = world;
 	}
 }

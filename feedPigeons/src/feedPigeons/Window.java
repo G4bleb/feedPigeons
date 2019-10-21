@@ -12,11 +12,11 @@ import javax.swing.JFrame;
 public class Window extends MouseAdapter {
 
 	//private static final long serialVersionUID = 224995615333633900L;
-	private World world;
+	private Game game;
 
-	public Window(int width, int height, String title, World world, Game game) {
-
-		this.world = world;
+	public Window(int width, int height, String title, Game game) {
+		
+		this.game = game;
 		
 		JFrame frame = new JFrame(title);
 		
@@ -42,7 +42,7 @@ public class Window extends MouseAdapter {
 	public void mousePressed(MouseEvent e) {
 		System.out.println("Mouse pressed at position x=" + e.getX() + " y=" + e.getY());
 		
-		world.addFood(e.getX(), e.getY(), 16, 16);
+		game.getWorld().addFood(e.getX(), e.getY(), 16, 16);
 	}
 	
 	public void mouseReleased(MouseEvent e) {
