@@ -21,5 +21,6 @@ public class Food extends GraphicEntity{
 	@Override
 	public void render(Graphics g) {
 		g.drawImage(IMG, x, y, null);
+		freshness += 0.004;
 	}
 }
