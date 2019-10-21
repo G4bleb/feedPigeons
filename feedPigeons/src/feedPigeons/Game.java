@@ -12,12 +12,16 @@ public class Game extends Canvas implements Runnable {
 	private static final int WIDTH = 640, HEIGHT = WIDTH / 12 * 9;
 	private Thread thread;
 	private boolean running = false;
+	private Window window;
 	
 	//Partie jeu
 	private World world;
 	
 	public Game() {
-		new Window(WIDTH, HEIGHT, "Pigeon Game", this);
+		
+		window = new Window(WIDTH, HEIGHT, "Pigeon Game", world, this);
+		
+		this.addMouseListener(window);
 	}
 
 	public synchronized void start() {
@@ -45,7 +49,6 @@ public class Game extends Canvas implements Runnable {
 		while(running) {
 			frameStartTime = System.nanoTime();
 			
-			
 			tick();
 			if(running) {
 				render();
@@ -57,7 +60,7 @@ public class Game extends Canvas implements Runnable {
 			
 			if(System.currentTimeMillis() - timer > 1000) {
 				timer += 1000;
-				System.out.println("FPS: "+ frames);
+				//System.out.println("FPS: "+ frames);
 				frames = 0;
 				
 			}
