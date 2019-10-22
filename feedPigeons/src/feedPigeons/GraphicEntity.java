@@ -70,7 +70,6 @@ abstract class GraphicEntity {
 		return Math.sqrt(term1+term2);
 	}
 	
-	//public abstract void tick();
 	public abstract void render(Graphics g);
 
 }

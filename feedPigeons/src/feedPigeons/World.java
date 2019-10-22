@@ -56,12 +56,14 @@ public class World {
 		foodLock.release();
 	}
 
+	
 	public void ageFood() {
 		Food f;
 		try {
 			foodLock.acquire();
 			for (int i = 0; i < foodArray.size(); i++) {
 				f = foodArray.get(i);
+				//Si la nourriture a vieilli, on la supprime
 				if (f.age()) {
 					foodArray.remove(i);
 				}
@@ -83,7 +85,7 @@ public class World {
 
 			foodLock.acquire();
 			for (Food f : foodArray) {
-				f.render(g);
+				f.render(g); //Affichage graphique de la nourriture
 			}
 			foodLock.release();
 		} catch (InterruptedException e) {

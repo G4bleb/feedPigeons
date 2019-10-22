@@ -9,9 +9,10 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
+// Creation de la fenetre
+// MouseAdapter permet de gerer les clics de souris
 public class Window extends MouseAdapter {
 
-	//private static final long serialVersionUID = 224995615333633900L;
 	private Game game;
 
 	public Window(int width, int height, String title, Game game) {
@@ -36,17 +37,14 @@ public class Window extends MouseAdapter {
 		frame.add(game);
 		frame.setVisible(true);
 		
+		//Apres avoir cree notre fenetre, on lance le jeu
 		game.start();
 	}
 	
+	//Si on detecte un clic dans la fenetre, on ajoute une nouvelle nourriture a cet emplacement
 	public void mousePressed(MouseEvent e) {
 		System.out.println("Mouse pressed at position x=" + e.getX() + " y=" + e.getY());
 		
 		game.getWorld().addFood(e.getX(), e.getY(), 16, 16);
 	}
-	
-	public void mouseReleased(MouseEvent e) {
-		
-	}
-
 }

@@ -22,10 +22,11 @@ public class Game extends Canvas implements Runnable {
 		
 		window = new Window(WIDTH, HEIGHT, "Pigeon Game", this);
 		
-		this.addMouseListener(window);
+		this.addMouseListener(window); //On ajoute le listener qui traite les clics
 	}
 
 	public synchronized void start() {
+		//Lancement du jeu, on met en place notre monde et on lance le thread principal
 		setWorld(new World(WIDTH, HEIGHT, PIGEONSNUMBER));
 		thread = new Thread(this);
 		thread.start();
@@ -33,9 +34,10 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	public synchronized void stop() {
+		//Arret du jeu, on ferme le thread et la boucle principale
 		try {
-			thread.join();
 			running = false;
+			thread.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -47,6 +49,8 @@ public class Game extends Canvas implements Runnable {
 		long timer = System.currentTimeMillis();
 		int frames = 0;
 		long frameStartTime;
+		
+		// Boucle principale faisant tourner le jeu
 		while(running) {
 			frameStartTime = System.nanoTime();
 			
@@ -54,7 +58,6 @@ public class Game extends Canvas implements Runnable {
 			if(running) {
 				render();
 			}
-			//long timeElapsed = System.nanoTime()-t1;
 			
 			while(System.nanoTime()-frameStartTime <= 16666666l);
 			frames++;
@@ -63,18 +66,19 @@ public class Game extends Canvas implements Runnable {
 				timer += 1000;
 				//System.out.println("FPS: "+ frames);
 				frames = 0;
-				
 			}
 		}
 		
 		stop();
 	}
 	
+	
 	private void tick() {
-		world.ageFood();
+		world.ageFood(); //On vérifie a chaque tick si la nourriture a vieilli
 	}
 	
 	private void render() {
+		// A chaque tour, on render notre monde
 		BufferStrategy bs = this.getBufferStrategy();
 		
 		if(bs == null) {
