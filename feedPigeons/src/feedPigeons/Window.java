@@ -28,8 +28,7 @@ public class Window extends MouseAdapter {
 		try {
 			frame.setIconImage(ImageIO.read(new File("res/pigeon.png")));
 		} catch (IOException e) {
-			System.err.println("Couldn't find file: " + "res/pigeon.png");
-			System.exit(1);
+			System.err.println("Couldn't find window icon file");
 		}
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

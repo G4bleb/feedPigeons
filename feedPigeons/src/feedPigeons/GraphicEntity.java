@@ -1,8 +1,8 @@
 package feedPigeons;
 
 import java.awt.Graphics;
+import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import javax.swing.ImageIcon;
 
@@ -77,13 +77,15 @@ abstract class GraphicEntity {
 	}
 
 	protected static ImageIcon createImageIcon(String path) {
-		URL imgURL;
-		try {
-			imgURL = new URL(new URL("file:"), path);
-			return new ImageIcon(imgURL);
-		} catch (MalformedURLException e) {
-			System.err.println("Couldn't find file: " + path);
+		File file = new File(path);
+		if (!file.exists()) {
+			System.err.println("FATAL ERROR : Couldn't find file: " + path);
 			System.exit(1);
+			return null;
+		}
+		try {
+			return new ImageIcon(file.toURI().toURL());
+		} catch (MalformedURLException e) {
 			return null;
 		}
 	}

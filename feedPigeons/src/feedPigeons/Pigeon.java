@@ -93,7 +93,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	 */
 	private void getMaybeScared(float fear) {
 		if (fear > fearThreshold) {
-			log("J'ai pris peur");
+			log("Scared");
 			scared = true;
 			objective = new SafeSpace(this.x + RAND.nextInt(SAFERANGE + SAFERANGE) - SAFERANGE,
 					this.y + RAND.nextInt(SAFERANGE + SAFERANGE) - SAFERANGE);
