@@ -6,34 +6,30 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
-import javax.swing.ImageIcon;
-
 //Chaque pigeon est contrôlé par un Thread
 public class Pigeon extends GraphicEntity implements Runnable {
 	// Constantes
-	private static final Image IMG = new ImageIcon("res/pigeon.png").getImage();
-	private static final Image IMGSCARED = new ImageIcon("res/scaredpigeon.png").getImage();
-	private static final int WIDTH = 21, HEIGHT = 21;
+	private static final Image IMG = createImageIcon("res/pigeon.png").getImage();
+	private static final Image IMGSCARED = createImageIcon("res/scaredpigeon.png").getImage();
+	public static final int WIDTH = 21, HEIGHT = 21;
 
 	private static final int SAFERANGE = 70;// Distance maximale de la zone de fuite
 	private static final float DEFAULTFEARTHRESHOLD = 0.995f;// Seuil de peur par défaut
 	private static final Random RAND = new Random();
 
-	//Variables
+	// Variables
 	private boolean alive = true;
 	private boolean scared = false;
 	private float fearThreshold;// Seuil de peur
-	
+
 	private int foodObjectiveID = 0;// Indice de la nourriture ciblée dans foodHere
 	private boolean checkFood = false;// Pour actualisation de la nourriture ciblée quand c'est nécessaire
 
-	//Références
+	// Références
 	private ArrayList<Food> foodHere;// Tableau des nourritures présentes
 	private Semaphore foodLock;// Sémaphore pour opérations sur le tableau de nourriture
 	private GraphicEntity objective = null;// Objectif actuel
 	private Food foodObjective = null;// Nourriture ciblée
-	
-	
 
 	public Pigeon(int x, int y, ArrayList<Food> foodToWatch, Semaphore foodLock) {
 		super(x, y, WIDTH, HEIGHT);
@@ -113,7 +109,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	private void stepToObjective() {
 
 		if (objective == null) {
-			//La nourriture ciblée a disparue
+			// La nourriture ciblée a disparue
 			checkFood = true;
 			return;
 		}
@@ -129,9 +125,9 @@ public class Pigeon extends GraphicEntity implements Runnable {
 		this.y = y_move + this.y;
 
 		if (collidesWith(objective)) {
-			//Arrivée à l'objectif
+			// Arrivée à l'objectif
 			if (objective instanceof Food) {
-				//C'est de la nourriture
+				// C'est de la nourriture
 				log("Trying to eat food " + foodObjectiveID);
 				eat(foodObjectiveID);
 				foodObjective = null;
@@ -146,13 +142,14 @@ public class Pigeon extends GraphicEntity implements Runnable {
 
 	/**
 	 * Mange la nourriture dont l'index est passé en paramètre
+	 * 
 	 * @param foodID l'index de la nourriture dans foodHere
 	 * @return true si la nourriture a été mangée avec succès
 	 */
 	private synchronized boolean eat(int foodID) {
 		try {
 			foodLock.acquire();
-			
+
 			if (foodID < foodHere.size()) {
 				foodHere.remove(foodID);
 				foodObjective = null;
@@ -161,7 +158,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 				foodLock.release();
 				return true;
 			}
-			
+
 			foodLock.release();
 		} catch (InterruptedException e) {
 		}
@@ -170,11 +167,8 @@ public class Pigeon extends GraphicEntity implements Runnable {
 	}
 
 	/**
-	 * Boucle principale du Pigeon
-	 * Chaque 60eme de seconde, peut :
-	 *  - Considérer la meilleure nourriture
-	 *  - Prendre peur
-	 *  - Marcher vers son objectif
+	 * Boucle principale du Pigeon Chaque 60eme de seconde, peut : - Considérer la
+	 * meilleure nourriture - Prendre peur - Marcher vers son objectif
 	 */
 	@Override
 	public void run() {
@@ -183,24 +177,25 @@ public class Pigeon extends GraphicEntity implements Runnable {
 
 		while (alive) {
 			frameStartTime = System.nanoTime();
-			
+
 			if (lastKnownFoodArraySize != foodHere.size() || checkFood) {
 				// Si de la nourriture vient d'arriver ou de disparaître
 				findBestFood();
 				lastKnownFoodArraySize = foodHere.size();
 				checkFood = false;
 			}
-			
+
 			getMaybeScared(RAND.nextFloat());
-			
-			if(!scared) {
+
+			if (!scared) {
 				objective = foodObjective;
 			}
-			
+
 			stepToObjective();
 
-			//Attendre la fin d'un 60eme de seconde
-			while (System.nanoTime() - frameStartTime <= 16666666l);
+			// Attendre la fin d'un 60eme de seconde
+			while (System.nanoTime() - frameStartTime <= 16666666l)
+				;
 
 		}
 
@@ -220,6 +215,7 @@ public class Pigeon extends GraphicEntity implements Runnable {
 
 	/**
 	 * Log un message dans la console, en ajoutant l'id du pigeon
+	 * 
 	 * @param msg le message à log
 	 */
 	private void log(String msg) {

@@ -9,14 +9,14 @@ public class Game extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = -1750302489705385150L;
 	
-	private static final int WIDTH = 640, HEIGHT = WIDTH / 12 * 9;
+	public static final int WIDTH = 640, HEIGHT = WIDTH / 12 * 9;
 	private Thread thread;
 	private boolean running = false;
 	private Window window;
 	
 	//Partie jeu
 	private World world;
-	private static final int PIGEONSNUMBER = 3;
+	private static final int PIGEONSNUMBER = 4;
 	
 	public Game() {
 		
@@ -45,9 +45,6 @@ public class Game extends Canvas implements Runnable {
 	
 	@Override
 	public void run() {
-
-		long timer = System.currentTimeMillis();
-		int frames = 0;
 		long frameStartTime;
 		
 		// Boucle principale faisant tourner le jeu
@@ -59,14 +56,8 @@ public class Game extends Canvas implements Runnable {
 				render();
 			}
 			
+			//Attente de la fin d'un 60Ã¨me de seconde
 			while(System.nanoTime()-frameStartTime <= 16666666l);
-			frames++;
-			
-			if(System.currentTimeMillis() - timer > 1000) {
-				timer += 1000;
-				//System.out.println("FPS: "+ frames);
-				frames = 0;
-			}
 		}
 		
 		stop();
@@ -74,7 +65,7 @@ public class Game extends Canvas implements Runnable {
 	
 	
 	private void tick() {
-		world.ageFood(); //On vérifie a chaque tick si la nourriture a vieilli
+		world.ageFood(); //On viellit la nourriture
 	}
 	
 	private void render() {

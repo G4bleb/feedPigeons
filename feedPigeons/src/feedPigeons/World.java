@@ -47,23 +47,24 @@ public class World {
 		executor.execute(new MonitorPigeon(new Pigeon(x, y, foodArray, foodLock)));
 	}
 
-	public void addFood(int x, int y, int width, int height) {
+	public void addFood(int x, int y) {
 		try {
 			foodLock.acquire();
+
+			foodArray.add(new Food(x, y));
 		} catch (InterruptedException e) {
 		}
-		foodArray.add(new Food(x, y));
 		foodLock.release();
+
 	}
 
-	
 	public void ageFood() {
 		Food f;
 		try {
 			foodLock.acquire();
 			for (int i = 0; i < foodArray.size(); i++) {
 				f = foodArray.get(i);
-				//Si la nourriture a vieilli, on la supprime
+				// Si la nourriture a vieilli, on la supprime
 				if (f.age()) {
 					foodArray.remove(i);
 				}
@@ -85,7 +86,7 @@ public class World {
 
 			foodLock.acquire();
 			for (Food f : foodArray) {
-				f.render(g); //Affichage graphique de la nourriture
+				f.render(g); // Affichage graphique de la nourriture
 			}
 			foodLock.release();
 		} catch (InterruptedException e) {
